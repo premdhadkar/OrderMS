@@ -3,6 +3,8 @@ package com.team21.dto;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import com.team21.entity.OrderEntity;
+
 public class OrderDTO {
 
 	private String orderId;
@@ -84,6 +86,17 @@ public class OrderDTO {
 		return Objects.equals(address, other.address) && Objects.equals(amount, other.amount)
 				&& Objects.equals(buyerId, other.buyerId) && Objects.equals(date, other.date)
 				&& Objects.equals(orderId, other.orderId) && Objects.equals(status, other.status);
+	}
+
+	public static OrderDTO createDTO(OrderEntity orderEntity) {
+		OrderDTO orderDTO = new OrderDTO();
+		orderDTO.setAddress(orderEntity.getAddress());
+		orderDTO.setAmount(orderEntity.getAmount());
+		orderDTO.setBuyerId(orderEntity.getBuyerId());
+		orderDTO.setDate(orderEntity.getDate());
+		orderDTO.setOrderId(orderEntity.getOrderId());
+		orderDTO.setStatus(orderEntity.getStatus());
+		return orderDTO;
 	}
 
 }
