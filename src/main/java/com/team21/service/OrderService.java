@@ -11,7 +11,10 @@ import com.team21.exception.OrderMSException;
 public interface OrderService {
 
 	public List<OrderDTO> viewAllOrders() throws OrderMSException;
-	
-	public OrderPlacedDTO placeOrder(List<ProductDTO> productList, List<CartDTO> cartList, OrderDTO order) throws OrderMSException;
+
+	public OrderPlacedDTO placeOrder(List<ProductDTO> productList, List<CartDTO> cartList, OrderDTO order)
+			throws OrderMSException;
+
+	public List<OrderDTO> viewOrdersByBuyer(String buyerId) throws OrderMSException;
 
 }

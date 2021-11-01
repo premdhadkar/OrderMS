@@ -87,4 +87,17 @@ public class OrderServiceImpl implements OrderService {
 		return orderPlaced;
 	}
 
+	@Override
+	public List<OrderDTO> viewOrdersByBuyer(String buyerId) throws OrderMSException {
+		List<OrderEntity> orders = orderRepository.findByBuyerId(buyerId);
+		if (orders.isEmpty())
+			throw new OrderMSException("No orders available for given BuyerID");
+		List<OrderDTO> orderDTOs = new ArrayList<>();
+		orders.forEach(order -> {
+			OrderDTO orderDTO = OrderDTO.createDTO(order);
+			orderDTOs.add(orderDTO);
+		});
+		return orderDTOs;
+	}
+
 }

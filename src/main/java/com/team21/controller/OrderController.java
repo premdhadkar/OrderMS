@@ -46,7 +46,7 @@ public class OrderController {
 		}
 	}
 
-	@PostMapping(value = "/orderMS/placeOrder/{buyerId}")
+	@PostMapping(value = "/order/placeOrder/{buyerId}")
 	public ResponseEntity<String> placeOrder(@PathVariable String buyerId, @RequestBody OrderDTO order) {
 
 		try {
@@ -87,5 +87,15 @@ public class OrderController {
 			return new ResponseEntity<>(newMsg, HttpStatus.UNAUTHORIZED);
 		}
 
+	}
+
+	@GetMapping(value = "/order/viewOrders/{buyerId}")
+	public ResponseEntity<List<OrderDTO>> viewsOrdersByBuyerId(@PathVariable String buyerId) {
+		try {
+			List<OrderDTO> allOrders = orderService.viewOrdersByBuyer(buyerId);
+			return new ResponseEntity<>(allOrders, HttpStatus.OK);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+		}
 	}
 }
