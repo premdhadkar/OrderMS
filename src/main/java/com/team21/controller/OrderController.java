@@ -46,6 +46,7 @@ public class OrderController {
 		}
 	}
 
+	// Place Order by Buyer
 	@PostMapping(value = "/order/placeOrder/{buyerId}")
 	public ResponseEntity<String> placeOrder(@PathVariable String buyerId, @RequestBody OrderDTO order) {
 
@@ -60,7 +61,7 @@ public class OrderController {
 
 			cartList.forEach(item -> {
 				ProductDTO prod = new RestTemplate().getForObject(productUri + "product/get/Id/" + item.getProdId(),
-						ProductDTO.class); // getByProdId/{productId}
+						ProductDTO.class);
 
 				productList.add(prod);
 				// msg later
@@ -89,7 +90,8 @@ public class OrderController {
 
 	}
 
-	@GetMapping(value = "/order/viewOrders/{buyerId}")
+	// View Order History of Buyer using buyer Id
+	@GetMapping(value = "/order/view/byBuyerId/{buyerId}")
 	public ResponseEntity<List<OrderDTO>> viewsOrdersByBuyerId(@PathVariable String buyerId) {
 		try {
 			List<OrderDTO> allOrders = orderService.viewOrdersByBuyer(buyerId);
@@ -98,4 +100,28 @@ public class OrderController {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
 		}
 	}
+
+	// View Order using Order Id
+	@GetMapping(value = "/order/view/byOrderId/{orderId}")
+	public ResponseEntity<OrderDTO> viewOrderByOrderId(@PathVariable String orderId) {
+		try {
+			OrderDTO allOrders = orderService.viewOrderbyOrderId(orderId);
+			return new ResponseEntity<>(allOrders, HttpStatus.OK);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+		}
+	}
+
+	@PostMapping(value = "/order/reOrder/{orderId}/{buyerId}")
+	public ResponseEntity<String> reOrder(@PathVariable String buyerId, @PathVariable String orderId) {
+
+		try {
+
+			String reOrderId = orderService.reOrder(buyerId, orderId);
+			return new ResponseEntity<>("Order ID: " + reOrderId, HttpStatus.ACCEPTED);
+		} catch (Exception e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+	}
+
 }

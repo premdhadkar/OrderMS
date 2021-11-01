@@ -17,4 +17,8 @@ public interface OrderService {
 
 	public List<OrderDTO> viewOrdersByBuyer(String buyerId) throws OrderMSException;
 
+	public OrderDTO viewOrderbyOrderId(String orderId) throws OrderMSException;
+
+	public String reOrder(String buyerId, String orderId) throws OrderMSException;
+
 }

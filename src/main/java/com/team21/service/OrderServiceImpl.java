@@ -3,6 +3,7 @@ package com.team21.service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -87,11 +88,12 @@ public class OrderServiceImpl implements OrderService {
 		return orderPlaced;
 	}
 
+	// View Order History of Buyer using buyer Id
 	@Override
 	public List<OrderDTO> viewOrdersByBuyer(String buyerId) throws OrderMSException {
 		List<OrderEntity> orders = orderRepository.findByBuyerId(buyerId);
 		if (orders.isEmpty())
-			throw new OrderMSException("No orders available for given BuyerID");
+			throw new OrderMSException("No order history found for given BuyerID");
 		List<OrderDTO> orderDTOs = new ArrayList<>();
 		orders.forEach(order -> {
 			OrderDTO orderDTO = OrderDTO.createDTO(order);
@@ -100,4 +102,33 @@ public class OrderServiceImpl implements OrderService {
 		return orderDTOs;
 	}
 
+	// View Order using Order Id
+	@Override
+	public OrderDTO viewOrderbyOrderId(String orderId) throws OrderMSException {
+		Optional<OrderEntity> optional = orderRepository.findByOrderId(orderId);
+		OrderEntity order = optional.orElseThrow(() -> new OrderMSException("Order does not exist"));
+		OrderDTO orderDTO = OrderDTO.createDTO(order);
+		return orderDTO;
+	}
+
+	@Override
+	public String reOrder(String buyerId, String orderId) throws OrderMSException {
+		Optional<OrderEntity> optional = orderRepository.findByOrderId(orderId);
+		OrderEntity order = optional.orElseThrow(()->new OrderMSException("No order history found for given BuyerID"));
+		OrderEntity reOrderEntity = new OrderEntity();
+		String reOrderId = "ORD" + orderCount++;
+		
+		reOrderEntity.setOrderId(reOrderId);
+		reOrderEntity.setBuyerId(order.getBuyerId());
+		reOrderEntity.setAmount(order.getAmount());
+		reOrderEntity.setAddress(order.getAddress());
+		reOrderEntity.setDate(LocalDate.now());
+		reOrderEntity.setStatus(order.getStatus());
+		
+		orderRepository.save(reOrderEntity);		
+		return reOrderEntity.getOrderId();
+	}
+	
 }
+
+
