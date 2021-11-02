@@ -14,6 +14,7 @@ public class OrderDTO {
 	private String address;
 	private String status;
 
+	
 	// Getters and Setters
 	public String getOrderId() {
 		return orderId;

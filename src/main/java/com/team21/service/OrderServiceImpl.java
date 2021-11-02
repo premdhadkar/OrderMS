@@ -10,17 +10,15 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.team21.dto.CartDTO;
 import com.team21.dto.OrderDTO;
-import com.team21.dto.OrderPlacedDTO;
 import com.team21.dto.ProductDTO;
+import com.team21.dto.ProductOrderedDTO;
 import com.team21.entity.OrderEntity;
 import com.team21.entity.ProductOrderEntity;
 import com.team21.exception.OrderMSException;
 import com.team21.repository.OrderRepository;
 import com.team21.repository.ProductOrderedRepository;
 import com.team21.utility.CompositeKey;
-import com.team21.utility.CurrentOrderStatus;
 import com.team21.validator.OrderValidator;
 
 @Transactional
@@ -53,39 +51,43 @@ public class OrderServiceImpl implements OrderService {
 		return orderList;
 	}
 
+	// Place order to checkout
 	@Override
-	public OrderPlacedDTO placeOrder(List<ProductDTO> productList, List<CartDTO> cartList, OrderDTO orderDTO)
-			throws OrderMSException {
-		OrderEntity order = new OrderEntity();
+	public Float placeOrder(OrderDTO orderDTO, List<ProductOrderedDTO> productOrderedDTOs, List<ProductDTO> products,
+			Integer rewardPoints) throws OrderMSException {
 		OrderValidator.validateOrder(orderDTO);
+
+		Float amount = 0f;
+
+		for (int i = 0; i < products.size(); i++) {
+			OrderValidator.validateStock(productOrderedDTOs.get(i), products.get(i));
+			amount += (products.get(i).getPrice() * productOrderedDTOs.get(i).getQuantity());
+		}
 		String id = "ORD" + orderCount++;
+		Integer discount = (rewardPoints / 4);
+		amount = amount - discount;
+		orderDTO.setAmount(amount);
+		OrderEntity order = new OrderEntity();
 		order.setOrderId(id);
 		order.setAddress(orderDTO.getAddress());
-		order.setBuyerId(cartList.get(0).getBuyerId());
+		order.setAmount(amount);
+		order.setBuyerId(orderDTO.getBuyerId());
 		order.setDate(LocalDate.now());
-		order.setStatus(CurrentOrderStatus.ORDER_PLACED.toString());
-		order.setAmount(0f);
-		List<ProductOrderEntity> productsOrdered = new ArrayList<>();
-		for (int i = 0; i < cartList.size(); i++) {
-			OrderValidator.validateStock(cartList.get(i), productList.get(i));
-			order.setAmount(order.getAmount() + (cartList.get(i).getQuantity() * productList.get(i).getPrice()));
-			// CartList size and productList mismatch
-			ProductOrderEntity prodO = new ProductOrderEntity();
-			prodO.setSellerId(productList.get(i).getSellerId());
-			prodO.setCompositeID(new CompositeKey(cartList.get(i).getBuyerId(), productList.get(i).getProdId()));
-			prodO.setQuantity(cartList.get(i).getQuantity());
-			// order id required
-			productsOrdered.add(prodO);
-		}
-		productOrderedRepository.saveAll(productsOrdered);
-		orderRepository.save(order);
-		OrderPlacedDTO orderPlaced = new OrderPlacedDTO();
-		orderPlaced.setBuyerId(order.getBuyerId());
-		orderPlaced.setOrderId(order.getOrderId());
-		Integer rewardPts = (int) (order.getAmount() / 100);
-		orderPlaced.setRewardPoints(rewardPts);
+		order.setStatus("ORDER PLACED");
 
-		return orderPlaced;
+		orderRepository.save(order);
+
+		for (ProductOrderedDTO productOrderedDTO : productOrderedDTOs) {
+			CompositeKey key = new CompositeKey(productOrderedDTO.getBuyerId(), productOrderedDTO.getProductId());
+			ProductOrderEntity productOrderedEntity = new ProductOrderEntity();
+			productOrderedEntity.setQuantity(productOrderedDTO.getQuantity());
+			productOrderedEntity.setSellerId(productOrderedDTO.getSellerId());
+			productOrderedEntity.setCompositeID(key);
+
+			productOrderedRepository.save(productOrderedEntity);
+		}
+
+		return amount;
 	}
 
 	// View Order History of Buyer using buyer Id
@@ -114,21 +116,32 @@ public class OrderServiceImpl implements OrderService {
 	@Override
 	public String reOrder(String buyerId, String orderId) throws OrderMSException {
 		Optional<OrderEntity> optional = orderRepository.findByOrderId(orderId);
-		OrderEntity order = optional.orElseThrow(()->new OrderMSException("No order history found for given BuyerID"));
+		OrderEntity order = optional
+				.orElseThrow(() -> new OrderMSException("No order history found for given BuyerID"));
 		OrderEntity reOrderEntity = new OrderEntity();
 		String reOrderId = "ORD" + orderCount++;
-		
+
 		reOrderEntity.setOrderId(reOrderId);
 		reOrderEntity.setBuyerId(order.getBuyerId());
 		reOrderEntity.setAmount(order.getAmount());
 		reOrderEntity.setAddress(order.getAddress());
 		reOrderEntity.setDate(LocalDate.now());
 		reOrderEntity.setStatus(order.getStatus());
-		
-		orderRepository.save(reOrderEntity);		
+
+		orderRepository.save(reOrderEntity);
 		return reOrderEntity.getOrderId();
 	}
-	
+
+	// Create ProductOrderedDTO to use in place order controller
+	@Override
+	public ProductOrderedDTO createProductOrderDTO(ProductDTO product, String buyerId, Integer quantity) {
+		ProductOrderedDTO productOrderedDTO = new ProductOrderedDTO();
+
+		productOrderedDTO.setBuyerId(buyerId);
+		productOrderedDTO.setSellerId(product.getSellerId());
+		productOrderedDTO.setProductId(product.getProdId());
+		productOrderedDTO.setQuantity(quantity);
+		return productOrderedDTO;
+	}
+
 }
-
-

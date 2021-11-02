@@ -6,7 +6,7 @@ order_id varchar(30) primary key,
 buyer_id varchar(30),
 amount float,
 date Date,
-address varchar(50),
+address varchar(100),
 status varchar(20))
 ;
 create table products_ordered(

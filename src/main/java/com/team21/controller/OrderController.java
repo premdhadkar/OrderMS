@@ -6,12 +6,14 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -21,6 +23,8 @@ import com.team21.dto.CartDTO;
 import com.team21.dto.OrderDTO;
 import com.team21.dto.OrderPlacedDTO;
 import com.team21.dto.ProductDTO;
+import com.team21.dto.ProductOrderedDTO;
+import com.team21.exception.OrderMSException;
 import com.team21.service.OrderService;
 
 @RestController
@@ -47,47 +51,53 @@ public class OrderController {
 	}
 
 	// Place Order by Buyer
-	@PostMapping(value = "/order/placeOrder/{buyerId}")
-	public ResponseEntity<String> placeOrder(@PathVariable String buyerId, @RequestBody OrderDTO order) {
-
+	@SuppressWarnings("unchecked")
+	@PostMapping(value = "/order/place", consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<String> placeOrder(@RequestBody OrderDTO orderDTO) {
 		try {
+			Integer rewardPoints = new RestTemplate()
+					.getForObject(userUri + "userMS/get/rewardPoints/" + orderDTO.getBuyerId(), Integer.class);
 
-			ObjectMapper mapper = new ObjectMapper();
-			List<ProductDTO> productList = new ArrayList<>();
-			List<CartDTO> cartList = mapper.convertValue(
-					new RestTemplate().getForObject(userUri + "/userMS/buyer/cart/get/" + buyerId, List.class),
-					new TypeReference<List<CartDTO>>() {
-					});
+			List<String> productIdList = new RestTemplate()
+					.getForObject(userUri + "cart/product/" + orderDTO.getBuyerId(), List.class);
 
-			cartList.forEach(item -> {
-				ProductDTO prod = new RestTemplate().getForObject(productUri + "product/get/Id/" + item.getProdId(),
+			List<ProductDTO> products = new ArrayList<>();
+			List<ProductOrderedDTO> productOrderedDTOs = new ArrayList<>();
+
+			for (String productId : productIdList) {
+				ProductDTO product = new RestTemplate().getForObject(productUri + "product/get/Id/" + productId,
 						ProductDTO.class);
 
-				productList.add(prod);
-				// msg later
-			});
+				Integer quantity = new RestTemplate().getForObject(
+						userUri + "/cart/product/quantity/" + orderDTO.getBuyerId() + "/" + productId, Integer.class);
 
-			OrderPlacedDTO orderPlaced = orderService.placeOrder(productList, cartList, order);
-			cartList.forEach(item -> {
-				new RestTemplate().getForObject(
-						productUri + "product/reduce/stock/" + item.getProdId() + "/" + item.getQuantity(),
-						Boolean.class);
-				new RestTemplate().postForObject(
-						userUri + "userMS/buyer/cart/remove/" + buyerId + "/" + item.getProdId(), null, String.class);
-			});
-
-			new RestTemplate().getForObject(
-					userUri + "updateRewardPoints/" + buyerId + "/" + orderPlaced.getRewardPoints(), String.class);
-
-			return new ResponseEntity<>(orderPlaced.getOrderId(), HttpStatus.ACCEPTED);
-		} catch (Exception e) {
-			String newMsg = "There was some error";
-			if (e.getMessage().equals("404 null")) {
-				newMsg = "Error while placing the order";
+				if (product != null) {
+					productOrderedDTOs
+							.add(orderService.createProductOrderDTO(product, orderDTO.getBuyerId(), quantity));
+					products.add(product);
+				}
 			}
-			return new ResponseEntity<>(newMsg, HttpStatus.UNAUTHORIZED);
-		}
 
+			// orderDTO.setProductOrdered(products);
+
+			Float amount = orderService.placeOrder(orderDTO, productOrderedDTOs, products, rewardPoints);
+
+			new RestTemplate().postForObject(userUri + "userMS/updateRewards/" + orderDTO.getBuyerId(), amount,
+					Boolean.class);
+
+			for (ProductOrderedDTO productOrderedDTO : productOrderedDTOs) {
+
+				new RestTemplate().getForObject(productUri + "product/reduce/stock/" + productOrderedDTO.getProductId()
+						+ "/" + productOrderedDTO.getQuantity(), Boolean.class);
+
+			}
+
+			return new ResponseEntity<String>("Order Placed Successfully!!", HttpStatus.OK);
+		} catch (HttpClientErrorException e) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+		} catch (Exception e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	// View Order History of Buyer using buyer Id
