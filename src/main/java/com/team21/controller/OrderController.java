@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
@@ -133,15 +133,15 @@ public class OrderController {
 		}
 	}
 
-	//Update order status
-	@PutMapping(value = "/order/status/update/{orderId}/{status}")
+	// Update order status
+	@PostMapping(value = "/order/status/update/{orderId}/{status}")
 	public ResponseEntity<String> updateStatus(@PathVariable String orderId, @PathVariable CurrentOrderStatus status) {
 		try {
 
 			orderService.updateOrderStatus(orderId, status);
 			return new ResponseEntity<String>("Status updated successfully!", HttpStatus.OK);
 		} catch (OrderMSException e) {
-			return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
 		}
 	}
 
