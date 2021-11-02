@@ -3,8 +3,12 @@ package com.team21.entity;
 import java.time.LocalDate;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import com.team21.utility.CurrentOrderStatus;
 
 @Entity
 @Table(name = "order_table")
@@ -16,7 +20,8 @@ public class OrderEntity {
 	private Float amount;
 	private LocalDate date;
 	private String address;
-	private String status;
+	@Enumerated(EnumType.STRING)
+	private CurrentOrderStatus status;
 
 	// Getters and SettersS
 	public String getOrderId() {
@@ -59,11 +64,11 @@ public class OrderEntity {
 		this.address = address;
 	}
 
-	public String getStatus() {
+	public CurrentOrderStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(CurrentOrderStatus status) {
 		this.status = status;
 	}
 

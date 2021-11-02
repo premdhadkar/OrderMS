@@ -6,6 +6,7 @@ import com.team21.dto.OrderDTO;
 import com.team21.dto.ProductDTO;
 import com.team21.dto.ProductOrderedDTO;
 import com.team21.exception.OrderMSException;
+import com.team21.utility.CurrentOrderStatus;
 
 public interface OrderService {
 
@@ -21,5 +22,7 @@ public interface OrderService {
 
 	public Float placeOrder(OrderDTO orderDTO, List<ProductOrderedDTO> productOrderedDTOs, List<ProductDTO> products,
 			Integer rewardPoints) throws OrderMSException;
+
+	public void updateOrderStatus(String orderId, CurrentOrderStatus status) throws OrderMSException;
 
 }

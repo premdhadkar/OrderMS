@@ -11,21 +11,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.team21.dto.CartDTO;
 import com.team21.dto.OrderDTO;
-import com.team21.dto.OrderPlacedDTO;
+
 import com.team21.dto.ProductDTO;
 import com.team21.dto.ProductOrderedDTO;
 import com.team21.exception.OrderMSException;
 import com.team21.service.OrderService;
+import com.team21.utility.CurrentOrderStatus;
 
 @RestController
 public class OrderController {
@@ -131,6 +130,18 @@ public class OrderController {
 			return new ResponseEntity<>("Order ID: " + reOrderId, HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	//Update order status
+	@PutMapping(value = "/order/status/update/{orderId}/{status}")
+	public ResponseEntity<String> updateStatus(@PathVariable String orderId, @PathVariable CurrentOrderStatus status) {
+		try {
+
+			orderService.updateOrderStatus(orderId, status);
+			return new ResponseEntity<String>("Status updated successfully!", HttpStatus.OK);
+		} catch (OrderMSException e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
 	}
 

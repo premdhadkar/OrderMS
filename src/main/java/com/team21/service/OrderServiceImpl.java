@@ -19,6 +19,7 @@ import com.team21.exception.OrderMSException;
 import com.team21.repository.OrderRepository;
 import com.team21.repository.ProductOrderedRepository;
 import com.team21.utility.CompositeKey;
+import com.team21.utility.CurrentOrderStatus;
 import com.team21.validator.OrderValidator;
 
 @Transactional
@@ -73,7 +74,7 @@ public class OrderServiceImpl implements OrderService {
 		order.setAmount(amount);
 		order.setBuyerId(orderDTO.getBuyerId());
 		order.setDate(LocalDate.now());
-		order.setStatus("ORDER PLACED");
+		order.setStatus(CurrentOrderStatus.ORDER_PLACED);
 
 		orderRepository.save(order);
 
@@ -142,6 +143,18 @@ public class OrderServiceImpl implements OrderService {
 		productOrderedDTO.setProductId(product.getProdId());
 		productOrderedDTO.setQuantity(quantity);
 		return productOrderedDTO;
+	}
+
+	// Order status
+	@Override
+	public void updateOrderStatus(String orderId, CurrentOrderStatus status) throws OrderMSException {
+		Optional<OrderEntity> order = orderRepository.findById(orderId);
+		if (order.isPresent() == true) {
+			order.get().setStatus(status);
+			orderRepository.save(order.get());
+		} else
+			throw new OrderMSException("Order not found!!");
+
 	}
 
 }

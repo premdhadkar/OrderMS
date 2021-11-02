@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 import com.team21.entity.OrderEntity;
+import com.team21.utility.CurrentOrderStatus;
 
 public class OrderDTO {
 
@@ -12,9 +13,8 @@ public class OrderDTO {
 	private Float amount;
 	private LocalDate date;
 	private String address;
-	private String status;
+	private CurrentOrderStatus status;
 
-	
 	// Getters and Setters
 	public String getOrderId() {
 		return orderId;
@@ -56,18 +56,12 @@ public class OrderDTO {
 		this.address = address;
 	}
 
-	public String getStatus() {
+	public CurrentOrderStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(CurrentOrderStatus status) {
 		this.status = status;
-	}
-
-	@Override
-	public String toString() {
-		return "OrderDTO [orderId=" + orderId + ", buyerId=" + buyerId + ", amount=" + amount + ", date=" + date
-				+ ", address=" + address + ", status=" + status + "]";
 	}
 
 	@Override
@@ -86,7 +80,13 @@ public class OrderDTO {
 		OrderDTO other = (OrderDTO) obj;
 		return Objects.equals(address, other.address) && Objects.equals(amount, other.amount)
 				&& Objects.equals(buyerId, other.buyerId) && Objects.equals(date, other.date)
-				&& Objects.equals(orderId, other.orderId) && Objects.equals(status, other.status);
+				&& Objects.equals(orderId, other.orderId) && status == other.status;
+	}
+
+	@Override
+	public String toString() {
+		return "OrderDTO [orderId=" + orderId + ", buyerId=" + buyerId + ", amount=" + amount + ", date=" + date
+				+ ", address=" + address + ", status=" + status + "]";
 	}
 
 	public static OrderDTO createDTO(OrderEntity orderEntity) {
