@@ -39,7 +39,7 @@ public class OrderController {
 
 	@Autowired
 	OrderService orderService;
-	
+
 	@Autowired
 	ProductOrderedService productOrderedService;
 
@@ -86,19 +86,21 @@ public class OrderController {
 
 			BillDTO bill = orderService.placeOrder(orderDTO, productOrderedDTOs, products, rewardPoints);
 
-			new RestTemplate().postForObject(userUri + "userMS/updateRewards/" + orderDTO.getBuyerId(), bill.getAmount(),
-					Boolean.class);
+			new RestTemplate().postForObject(userUri + "userMS/updateRewards/" + orderDTO.getBuyerId(),
+					bill.getAmount(), Boolean.class);
 
 			for (ProductOrderedDTO productOrderedDTO : productOrderedDTOs) {
 
-				new RestTemplate().put(userUri + "userMS/buyer/cart/remove/" + orderDTO.getBuyerId() + "/" + productOrderedDTO.getProductId(), bill.getAmount());
-				
+				new RestTemplate().put(userUri + "userMS/buyer/cart/remove/" + orderDTO.getBuyerId() + "/"
+						+ productOrderedDTO.getProductId(), bill.getAmount());
+
 				new RestTemplate().getForObject(productUri + "product/reduce/stock/" + productOrderedDTO.getProductId()
 						+ "/" + productOrderedDTO.getQuantity(), Boolean.class);
 
 			}
 
-			return new ResponseEntity<String>("Order Placed Successfully! you order ID is : " + bill.getOrderId(), HttpStatus.OK);
+			return new ResponseEntity<String>("Order Placed Successfully! you order ID is : " + bill.getOrderId(),
+					HttpStatus.OK);
 		} catch (HttpClientErrorException e) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
 		} catch (Exception e) {
@@ -128,15 +130,16 @@ public class OrderController {
 		}
 	}
 
-	@PostMapping(value = "/order/reOrder/{orderId}/{buyerId}")
-	public ResponseEntity<String> reOrder(@PathVariable String buyerId, @PathVariable String orderId) {
+	// reorder previously ordered
+	@PostMapping(value = "/order/reOrder/{orderId}")
+	public ResponseEntity<String> reOrder(@PathVariable String orderId) throws Exception {
 
 		try {
 
-			String reOrderId = orderService.reOrder(buyerId, orderId);
-			return new ResponseEntity<>("Order ID: " + reOrderId, HttpStatus.ACCEPTED);
+			String reOrderId = orderService.reOrder(orderId);
+			return new ResponseEntity<>("Your Re-order is successful, Re-Order ID: " + reOrderId, HttpStatus.ACCEPTED);
 		} catch (Exception e) {
-			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
 		}
 	}
 
@@ -152,13 +155,15 @@ public class OrderController {
 		}
 	}
 
-	// View orders on sellers product Products 
+	// View orders on sellers product Products
 	@GetMapping(value = "/order/view/bySellersProducts/{sellerId}/{prodId}")
-	public ResponseEntity<List<ProductOrderedDTO>> viewOrderBySellerIdAndProductId(@PathVariable String sellerId, @PathVariable String prodId) {
+	public ResponseEntity<List<ProductOrderedDTO>> viewOrderBySellerIdAndProductId(@PathVariable String sellerId,
+			@PathVariable String prodId) {
 		try {
-			List<ProductOrderedDTO> productOrderedDTO = productOrderedService.viewOrderBySellerIdAndProductId(sellerId, prodId);
-			
-			return new ResponseEntity<List<ProductOrderedDTO>> (productOrderedDTO, HttpStatus.OK);
+			List<ProductOrderedDTO> productOrderedDTO = productOrderedService.viewOrderBySellerIdAndProductId(sellerId,
+					prodId);
+
+			return new ResponseEntity<List<ProductOrderedDTO>>(productOrderedDTO, HttpStatus.OK);
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
 		}

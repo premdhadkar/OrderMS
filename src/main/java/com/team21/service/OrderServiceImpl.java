@@ -118,8 +118,9 @@ public class OrderServiceImpl implements OrderService {
 		return orderDTO;
 	}
 
+	// reorder previously ordered
 	@Override
-	public String reOrder(String buyerId, String orderId) throws OrderMSException {
+	public String reOrder(String orderId) throws OrderMSException {
 		Optional<OrderEntity> optional = orderRepository.findByOrderId(orderId);
 		OrderEntity order = optional
 				.orElseThrow(() -> new OrderMSException("No order history found for given BuyerID"));
@@ -131,7 +132,7 @@ public class OrderServiceImpl implements OrderService {
 		reOrderEntity.setAmount(order.getAmount());
 		reOrderEntity.setAddress(order.getAddress());
 		reOrderEntity.setDate(LocalDate.now());
-		reOrderEntity.setStatus(order.getStatus());
+		reOrderEntity.setStatus(CurrentOrderStatus.ORDER_PLACED);
 
 		orderRepository.save(reOrderEntity);
 		return reOrderEntity.getOrderId();
