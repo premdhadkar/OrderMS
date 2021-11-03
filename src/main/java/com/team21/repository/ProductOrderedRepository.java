@@ -1,7 +1,5 @@
 package com.team21.repository;
 
-
-
 import org.springframework.data.repository.CrudRepository;
 
 import com.team21.entity.ProductOrderEntity;

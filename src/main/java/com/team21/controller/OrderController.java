@@ -24,6 +24,7 @@ import com.team21.dto.ProductDTO;
 import com.team21.dto.ProductOrderedDTO;
 import com.team21.exception.OrderMSException;
 import com.team21.service.OrderService;
+import com.team21.service.ProductOrderedService;
 import com.team21.utility.CurrentOrderStatus;
 
 @RestController
@@ -37,6 +38,9 @@ public class OrderController {
 
 	@Autowired
 	OrderService orderService;
+	
+	@Autowired
+	ProductOrderedService productOrderedService;
 
 	// Get all Order List
 	@GetMapping(value = "/order/getAll")
@@ -145,4 +149,15 @@ public class OrderController {
 		}
 	}
 
+	// View orders on sellers product Products 
+	@GetMapping(value = "/order/view/bySellersProducts/{sellerId}/{prodId}")
+	public ResponseEntity<List<ProductOrderedDTO>> viewOrderBySellerIdAndProductId(@PathVariable String sellerId, @PathVariable String prodId) {
+		try {
+			List<ProductOrderedDTO> productOrderedDTO = productOrderedService.viewOrderBySellerIdAndProductId(sellerId, prodId);
+			
+			return new ResponseEntity<List<ProductOrderedDTO>> (productOrderedDTO, HttpStatus.OK);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+		}
+	}
 }
