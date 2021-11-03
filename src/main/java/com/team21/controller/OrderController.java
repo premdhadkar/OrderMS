@@ -18,6 +18,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.team21.dto.BillDTO;
 import com.team21.dto.OrderDTO;
 
 import com.team21.dto.ProductDTO;
@@ -83,19 +84,21 @@ public class OrderController {
 
 			// orderDTO.setProductOrdered(products);
 
-			Float amount = orderService.placeOrder(orderDTO, productOrderedDTOs, products, rewardPoints);
+			BillDTO bill = orderService.placeOrder(orderDTO, productOrderedDTOs, products, rewardPoints);
 
-			new RestTemplate().postForObject(userUri + "userMS/updateRewards/" + orderDTO.getBuyerId(), amount,
+			new RestTemplate().postForObject(userUri + "userMS/updateRewards/" + orderDTO.getBuyerId(), bill.getAmount(),
 					Boolean.class);
 
 			for (ProductOrderedDTO productOrderedDTO : productOrderedDTOs) {
 
+				new RestTemplate().put(userUri + "userMS/buyer/cart/remove/" + orderDTO.getBuyerId() + "/" + productOrderedDTO.getProductId(), bill.getAmount());
+				
 				new RestTemplate().getForObject(productUri + "product/reduce/stock/" + productOrderedDTO.getProductId()
 						+ "/" + productOrderedDTO.getQuantity(), Boolean.class);
 
 			}
 
-			return new ResponseEntity<String>("Order Placed Successfully!!", HttpStatus.OK);
+			return new ResponseEntity<String>("Order Placed Successfully! you order ID is : " + bill.getOrderId(), HttpStatus.OK);
 		} catch (HttpClientErrorException e) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
 		} catch (Exception e) {

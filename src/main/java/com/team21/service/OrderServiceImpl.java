@@ -10,6 +10,7 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.team21.dto.BillDTO;
 import com.team21.dto.OrderDTO;
 import com.team21.dto.ProductDTO;
 import com.team21.dto.ProductOrderedDTO;
@@ -54,7 +55,7 @@ public class OrderServiceImpl implements OrderService {
 
 	// Place order to checkout
 	@Override
-	public Float placeOrder(OrderDTO orderDTO, List<ProductOrderedDTO> productOrderedDTOs, List<ProductDTO> products,
+	public BillDTO placeOrder(OrderDTO orderDTO, List<ProductOrderedDTO> productOrderedDTOs, List<ProductDTO> products,
 			Integer rewardPoints) throws OrderMSException {
 		OrderValidator.validateOrder(orderDTO);
 
@@ -88,7 +89,10 @@ public class OrderServiceImpl implements OrderService {
 			productOrderedRepository.save(productOrderedEntity);
 		}
 
-		return amount;
+		BillDTO bill = new BillDTO();
+		bill.setAmount(amount);
+		bill.setOrderId(order.getOrderId());
+		return bill;
 	}
 
 	// View Order History of Buyer using buyer Id

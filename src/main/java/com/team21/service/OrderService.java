@@ -2,6 +2,7 @@ package com.team21.service;
 
 import java.util.List;
 
+import com.team21.dto.BillDTO;
 import com.team21.dto.OrderDTO;
 import com.team21.dto.ProductDTO;
 import com.team21.dto.ProductOrderedDTO;
@@ -20,7 +21,7 @@ public interface OrderService {
 
 	public ProductOrderedDTO createProductOrderDTO(ProductDTO product, String buyerId, Integer quantity);
 
-	public Float placeOrder(OrderDTO orderDTO, List<ProductOrderedDTO> productOrderedDTOs, List<ProductDTO> products,
+	public BillDTO placeOrder(OrderDTO orderDTO, List<ProductOrderedDTO> productOrderedDTOs, List<ProductDTO> products,
 			Integer rewardPoints) throws OrderMSException;
 
 	public void updateOrderStatus(String orderId, CurrentOrderStatus status) throws OrderMSException;
