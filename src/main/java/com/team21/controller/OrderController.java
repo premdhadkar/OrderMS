@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,13 +56,23 @@ public class OrderController {
 	}
 
 	// Place Order by Buyer
-	@SuppressWarnings("unchecked")
-	@PostMapping(value = "/order/place", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<String> placeOrder(@RequestBody OrderDTO orderDTO) {
+	@KafkaListener(topics = "OrderData", groupId = "group_id")
+	public String placeOrder(String message) {
+		String[] splittedMessage = message.split("@");
+
+		System.out.println(message);
+
+		System.out.println(splittedMessage[0]);
+		OrderDTO orderDTO = new OrderDTO();
+
+		orderDTO.setBuyerId(splittedMessage[0]);
+		orderDTO.setAddress(splittedMessage[1]);
+
 		try {
 			Integer rewardPoints = new RestTemplate()
 					.getForObject(userUri + "userMS/get/rewardPoints/" + orderDTO.getBuyerId(), Integer.class);
 
+			@SuppressWarnings("unchecked")
 			List<String> productIdList = new RestTemplate()
 					.getForObject(userUri + "cart/product/" + orderDTO.getBuyerId(), List.class);
 
@@ -99,12 +110,11 @@ public class OrderController {
 
 			}
 
-			return new ResponseEntity<String>("Order Placed Successfully! you order ID is : " + bill.getOrderId(),
-					HttpStatus.OK);
+			return "Order Placed Successfully! your order ID is : " + bill.getOrderId();
 		} catch (HttpClientErrorException e) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
 		} catch (Exception e) {
-			return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
+			return e.getMessage();
 		}
 	}
 
