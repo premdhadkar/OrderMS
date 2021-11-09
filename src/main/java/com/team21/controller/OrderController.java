@@ -2,18 +2,14 @@ package com.team21.controller;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -60,9 +56,6 @@ public class OrderController {
 	public String placeOrder(String message) {
 		String[] splittedMessage = message.split("@");
 
-		System.out.println(message);
-
-		System.out.println(splittedMessage[0]);
 		OrderDTO orderDTO = new OrderDTO();
 
 		orderDTO.setBuyerId(splittedMessage[0]);
@@ -92,8 +85,6 @@ public class OrderController {
 					products.add(product);
 				}
 			}
-
-			// orderDTO.setProductOrdered(products);
 
 			BillDTO bill = orderService.placeOrder(orderDTO, productOrderedDTOs, products, rewardPoints);
 
@@ -142,7 +133,7 @@ public class OrderController {
 
 	// reorder previously ordered
 	@PostMapping(value = "/order/reOrder/{orderId}")
-	public ResponseEntity<String> reOrder(@PathVariable String orderId) throws Exception {
+	public ResponseEntity<String> reOrder(@PathVariable String orderId) throws ResponseStatusException {
 
 		try {
 
@@ -159,7 +150,7 @@ public class OrderController {
 		try {
 
 			orderService.updateOrderStatus(orderId, status);
-			return new ResponseEntity<String>("Status updated successfully!", HttpStatus.OK);
+			return new ResponseEntity<>("Status updated successfully!", HttpStatus.OK);
 		} catch (OrderMSException e) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
 		}
@@ -173,7 +164,7 @@ public class OrderController {
 			List<ProductOrderedDTO> productOrderedDTO = productOrderedService.viewOrderBySellerIdAndProductId(sellerId,
 					prodId);
 
-			return new ResponseEntity<List<ProductOrderedDTO>>(productOrderedDTO, HttpStatus.OK);
+			return new ResponseEntity<>(productOrderedDTO, HttpStatus.OK);
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
 		}
