@@ -82,8 +82,6 @@ public class OrderController {
 				}
 			}
 
-			// orderDTO.setProductOrdered(products);
-
 			BillDTO bill = orderService.placeOrder(orderDTO, productOrderedDTOs, products, rewardPoints);
 
 			new RestTemplate().postForObject(userUri + "userMS/updateRewards/" + orderDTO.getBuyerId(),
@@ -98,19 +96,20 @@ public class OrderController {
 						+ "/" + productOrderedDTO.getQuantity(), Boolean.class);
 
 			}
-			return new ResponseEntity<String>("Order Placed Successfully! you order ID is : " + bill.getOrderId(),
+			return new ResponseEntity<>("Order Placed Successfully! you order ID is : " + bill.getOrderId(),
 					HttpStatus.OK);
 
 		} catch (HttpClientErrorException e) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+			return new ResponseEntity<>("Some Error Occured", HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
 	}
 
 	// View Order History of Buyer using buyer Id
 	@GetMapping(value = "/order/view/byBuyerId/{buyerId}")
-	public ResponseEntity<List<OrderDTO>> viewsOrdersByBuyerId(@PathVariable String buyerId) {
+	public ResponseEntity<List<OrderDTO>> viewsOrdersByBuyerId(@PathVariable String buyerId)
+			throws ResponseStatusException {
 		try {
 			List<OrderDTO> allOrders = orderService.viewOrdersByBuyer(buyerId);
 			return new ResponseEntity<>(allOrders, HttpStatus.OK);
