@@ -7,7 +7,7 @@ import com.team21.exception.OrderMSException;
 
 public class OrderValidator {
 
-	public OrderValidator() {
+	private OrderValidator() {
 		super();
 	}
 
