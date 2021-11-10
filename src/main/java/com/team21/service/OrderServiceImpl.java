@@ -111,7 +111,6 @@ public class OrderServiceImpl implements OrderService {
 		Optional<OrderEntity> optional = orderRepository.findByOrderId(orderId);
 		OrderEntity order = optional.orElseThrow(() -> new OrderMSException("Order does not exist"));
 		return OrderDTO.createDTO(order);
-
 	}
 
 	// reorder previously ordered

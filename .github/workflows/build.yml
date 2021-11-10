@@ -2,7 +2,11 @@ name: Build
 on:
   push:
     branches:
+<<<<<<< HEAD
       - master
+=======
+      - kafkaImpl
+>>>>>>> b97a70082f951d86c8954f7aa473d4007d0d87ef
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
