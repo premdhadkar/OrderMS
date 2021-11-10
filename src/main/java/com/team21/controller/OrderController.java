@@ -131,7 +131,7 @@ public class OrderController {
 
 	// reorder previously ordered
 	@PostMapping(value = "/order/reOrder/{orderId}")
-	public ResponseEntity<String> reOrder(@PathVariable String orderId) throws Exception {
+	public ResponseEntity<String> reOrder(@PathVariable String orderId) throws ResponseStatusException {
 
 		try {
 
@@ -148,7 +148,7 @@ public class OrderController {
 		try {
 
 			orderService.updateOrderStatus(orderId, status);
-			return new ResponseEntity<String>("Status updated successfully!", HttpStatus.OK);
+			return new ResponseEntity<>("Status updated successfully!", HttpStatus.OK);
 		} catch (OrderMSException e) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
 		}
@@ -162,7 +162,7 @@ public class OrderController {
 			List<ProductOrderedDTO> productOrderedDTO = productOrderedService.viewOrderBySellerIdAndProductId(sellerId,
 					prodId);
 
-			return new ResponseEntity<List<ProductOrderedDTO>>(productOrderedDTO, HttpStatus.OK);
+			return new ResponseEntity<>(productOrderedDTO, HttpStatus.OK);
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
 		}

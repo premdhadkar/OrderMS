@@ -16,7 +16,6 @@ public class CompositeKey implements Serializable {
 	// Constructors
 	public CompositeKey() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public CompositeKey(String buyerId, String productId) {

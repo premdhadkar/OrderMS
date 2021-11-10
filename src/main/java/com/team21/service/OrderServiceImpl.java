@@ -27,17 +27,13 @@ import com.team21.validator.OrderValidator;
 @Service(value = "orderService")
 public class OrderServiceImpl implements OrderService {
 
-	private static int orderCount;
+	private static int orderCount = 100;
 
 	@Autowired
 	OrderRepository orderRepository;
 
 	@Autowired
 	ProductOrderedRepository productOrderedRepository;
-
-	static {
-		orderCount = 100;
-	}
 
 	// View All orders
 	@Override
@@ -114,8 +110,8 @@ public class OrderServiceImpl implements OrderService {
 	public OrderDTO viewOrderbyOrderId(String orderId) throws OrderMSException {
 		Optional<OrderEntity> optional = orderRepository.findByOrderId(orderId);
 		OrderEntity order = optional.orElseThrow(() -> new OrderMSException("Order does not exist"));
-		OrderDTO orderDTO = OrderDTO.createDTO(order);
-		return orderDTO;
+		return OrderDTO.createDTO(order);
+
 	}
 
 	// reorder previously ordered
@@ -154,7 +150,7 @@ public class OrderServiceImpl implements OrderService {
 	@Override
 	public void updateOrderStatus(String orderId, CurrentOrderStatus status) throws OrderMSException {
 		Optional<OrderEntity> order = orderRepository.findById(orderId);
-		if (order.isPresent() == true) {
+		if (order.isPresent()) {
 			order.get().setStatus(status);
 			orderRepository.save(order.get());
 		} else
